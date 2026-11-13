@@ -12,6 +12,23 @@
 
 ## Overview
 
+## Dashboard Preview
+
+### Overview
+![Overview](assets/overview.png)
+
+### Customer Segmentation
+![Customer Segmentation](assets/segmentation.png)
+
+### Churn Intelligence
+![Churn Intelligence](assets/churn.png)
+
+### Anomaly Detection
+![Anomaly Detection](assets/anomalies.png)
+
+### Reports & Insights
+![Reports](assets/reports.png)
+
 RetailPulse is an interactive retail intelligence dashboard built using Python and traditional Machine Learning algorithms.
 
 It transforms transactional retail data into actionable business insights by identifying valuable customer segments, predicting customer inactivity risk, and detecting unusual transaction patterns.

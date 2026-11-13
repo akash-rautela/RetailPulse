@@ -1400,6 +1400,7 @@ elif page == "Churn Intelligence":
 # ANOMALY DETECTION PAGE
 # ==========================================================
 
+
 elif page == "Anomaly Detection":
 
     st.title("Anomaly Detection")
@@ -1434,9 +1435,7 @@ elif page == "Anomaly Detection":
         st.error(f"Missing columns: {missing_columns}")
         st.stop()
 
-    # ------------------------------------------------------
     # DATA PREPARATION
-    # ------------------------------------------------------
 
     for col in [
         "Quantity",
@@ -1444,19 +1443,14 @@ elif page == "Anomaly Detection":
         "TotalAmount",
         "Anomaly_Score"
     ]:
-
         df[col] = pd.to_numeric(
             df[col],
             errors="coerce"
         )
 
-    df = df.dropna(
-        subset=required_columns
-    )
+    df = df.dropna(subset=required_columns)
 
-    # ------------------------------------------------------
     # KPI METRICS
-    # ------------------------------------------------------
 
     total_transactions = len(df)
 
@@ -1469,7 +1463,6 @@ elif page == "Anomaly Detection":
     ].copy()
 
     anomaly_count = len(anomaly_df)
-
     normal_count = len(normal_df)
 
     anomaly_percentage = (
@@ -1479,25 +1472,10 @@ elif page == "Anomaly Detection":
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric(
-        "Total Transactions",
-        f"{total_transactions:,}"
-    )
-
-    col2.metric(
-        "Normal Transactions",
-        f"{normal_count:,}"
-    )
-
-    col3.metric(
-        "Anomalies Detected",
-        f"{anomaly_count:,}"
-    )
-
-    col4.metric(
-        "Anomaly Rate",
-        f"{anomaly_percentage:.2f}%"
-    )
+    col1.metric("Total Transactions", f"{total_transactions:,}")
+    col2.metric("Normal Transactions", f"{normal_count:,}")
+    col3.metric("Anomalies Detected", f"{anomaly_count:,}")
+    col4.metric("Anomaly Rate", f"{anomaly_percentage:.2f}%")
 
     st.caption(
         "An anomaly is a statistically unusual transaction, "
@@ -1506,9 +1484,7 @@ elif page == "Anomaly Detection":
 
     st.divider()
 
-    # ------------------------------------------------------
     # ANOMALY DISTRIBUTION
-    # ------------------------------------------------------
 
     st.subheader("Transaction Pattern Analysis")
 
@@ -1517,14 +1493,8 @@ elif page == "Anomaly Detection":
     with col1:
 
         distribution = pd.DataFrame({
-            "Transaction Type": [
-                "Normal",
-                "Anomaly"
-            ],
-            "Count": [
-                normal_count,
-                anomaly_count
-            ]
+            "Transaction Type": ["Normal", "Anomaly"],
+            "Count": [normal_count, anomaly_count]
         })
 
         fig = px.pie(
@@ -1546,10 +1516,7 @@ elif page == "Anomaly Detection":
             plot_bgcolor="#0B1020"
         )
 
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+        st.plotly_chart(fig, use_container_width=True)
 
     with col2:
 
@@ -1571,20 +1538,14 @@ elif page == "Anomaly Detection":
             plot_bgcolor="#151D32"
         )
 
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+        st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
 
-    # ------------------------------------------------------
-    # QUANTITY VS TRANSACTION VALUE
-    # ------------------------------------------------------
+    # TRANSACTION BEHAVIOUR
 
     st.subheader("Transaction Behaviour")
 
-    # Sample for faster visualization on large datasets
     plot_df = df.sample(
         n=min(10000, len(df)),
         random_state=42
@@ -1620,57 +1581,68 @@ elif page == "Anomaly Detection":
         yaxis_title="Transaction Value (£)"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
 
-    # ------------------------------------------------------
-    # FILTER ANOMALIES
-    # ------------------------------------------------------
+    # EXPLORE UNUSUAL TRANSACTIONS
 
     st.subheader("Explore Unusual Transactions")
 
-    min_score = float(
-        anomaly_df["Anomaly_Score"].min()
-    ) if not anomaly_df.empty else 0
-
-    max_score = float(
-        anomaly_df["Anomaly_Score"].max()
-    ) if not anomaly_df.empty else 1
-
     if not anomaly_df.empty:
 
-        score_range = st.slider(
-            "Anomaly Score Range",
-            min_value=min_score,
-            max_value=max_score,
-            value=(min_score, max_score)
-        )
+        min_score = float(anomaly_df["Anomaly_Score"].min())
+        max_score = float(anomaly_df["Anomaly_Score"].max())
 
-        filtered = anomaly_df[
-            anomaly_df["Anomaly_Score"].between(
-                score_range[0],
-                score_range[1]
+        if min_score < max_score:
+
+            score_step = max(
+                (max_score - min_score) / 1000,
+                0.000001
             )
-        ].copy()
+
+            score_range = st.slider(
+                "Anomaly Score Range",
+                min_value=min_score,
+                max_value=max_score,
+                value=(min_score, max_score),
+                step=score_step,
+                format="%.5f",
+                key="anomaly_score_range"
+            )
+
+            filtered = anomaly_df[
+                anomaly_df["Anomaly_Score"].between(
+                    score_range[0],
+                    score_range[1]
+                )
+            ].copy()
+
+            st.caption(
+                f"Selected score range: "
+                f"{score_range[0]:.5f} to {score_range[1]:.5f}"
+            )
+
+        else:
+            filtered = anomaly_df.copy()
+            st.info("All detected anomalies have the same score.")
 
     else:
-
         filtered = anomaly_df.copy()
+        st.info("No unusual transactions detected.")
+
+    # CUSTOMER SEARCH
 
     search_id = st.text_input(
         "Search Customer ID",
-        placeholder="Enter Customer ID..."
+        placeholder="Enter Customer ID...",
+        key="anomaly_customer_search"
     )
 
     if search_id.strip() and "CustomerID" in filtered.columns:
 
         filtered = filtered[
-            filtered["CustomerID"].astype(str)
-            .str.contains(
+            filtered["CustomerID"].astype(str).str.contains(
                 search_id.strip(),
                 case=False,
                 na=False
@@ -1682,8 +1654,9 @@ elif page == "Anomaly Detection":
         ascending=False
     )
 
-    st.write(
-        f"Showing {len(filtered):,} unusual transactions"
+    st.metric(
+        "Matching Unusual Transactions",
+        f"{len(filtered):,}"
     )
 
     display_columns = [
@@ -1707,15 +1680,11 @@ elif page == "Anomaly Detection":
         hide_index=True
     )
 
-    # ------------------------------------------------------
     # DOWNLOAD
-    # ------------------------------------------------------
 
     st.download_button(
         "Download Anomaly Records",
-        data=filtered.to_csv(
-            index=False
-        ).encode("utf-8"),
+        data=filtered.to_csv(index=False).encode("utf-8"),
         file_name="anomaly_records.csv",
         mime="text/csv"
     )

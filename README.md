@@ -12,6 +12,33 @@
 
 ## Overview
 
+## System Architecture
+
+```mermaid
+flowchart TD
+    A["UCI Online Retail Dataset"] --> B["Data Cleaning & Preprocessing"]
+    B --> C["Cleaned Transaction Data"]
+
+    C --> D["RFM Analysis"]
+    D --> E["K-Means Clustering"]
+    E --> F["Customer Segments"]
+
+    C --> G["Churn Feature Engineering"]
+    G --> H["Random Forest Classifier"]
+    H --> I["Churn Risk Predictions"]
+
+    C --> J["Isolation Forest"]
+    J --> K["Anomaly Detection Results"]
+
+    F --> L["Streamlit Dashboard"]
+    I --> L
+    K --> L
+    C --> L
+
+    L --> M["Business Insights & Reports"]
+```
+
+
 ## Dashboard Preview
 
 ### Overview
